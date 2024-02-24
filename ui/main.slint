@@ -1,0 +1,32 @@
+component Cell inherits Rectangle {
+    callback clicked;
+    in property <string> value;
+    in property <int> index;
+
+    x: mod(index, 4) * 110px + 10px;
+    y: floor(index / 4) * 110px + 10px;
+    width: 100px;
+    height: 100px;
+    background: value == "" ? #e0e0e0 : #a3ecea;
+    border-radius: 5px;
+
+    Text {
+        text: value;
+        font-weight: 900;
+        font-size: 24px;
+    }
+}
+
+export component MainWindow inherits Window {
+    in property <[int]> number_array;
+
+    title: "Main Window";
+    width: 450px;
+    height: 450px;
+    background: #e0e0e0;
+
+    for i in 16: Cell {
+        value: i == 15 ? "" : i + "";
+        index: i;
+    }
+}
