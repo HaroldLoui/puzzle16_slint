@@ -1,5 +1,10 @@
+import { Button } from "std-widgets.slint";
+
+export global GameLogic {
+    callback click_cell(int, string);
+}
+
 component Cell inherits Rectangle {
-    callback clicked;
     in property <string> value;
     in property <int> index;
 
@@ -15,18 +20,49 @@ component Cell inherits Rectangle {
         font-weight: 900;
         font-size: 24px;
     }
+
+    TouchArea {
+        mouse-cursor: value == "" ? MouseCursor.default : MouseCursor.pointer;
+        clicked => {
+            GameLogic.click_cell(index, value)
+        }
+    }
 }
 
 export component MainWindow inherits Window {
+
+    callback reset;
+
+    in property <bool> win: false;
     in property <[int]> number_array;
 
     title: "Main Window";
     width: 450px;
-    height: 450px;
-    background: #e0e0e0;
+    height: 550px;
 
-    for i in 16: Cell {
-        value: i == 15 ? "" : i + "";
-        index: i;
+    Button {
+        y: 0;
+        height: 50px;
+        text: "reset";
+        clicked => {
+            root.reset();
+        }
+    }
+
+    Rectangle {
+        width: parent.width;
+        height: 450px;
+        y: 50px;
+        background: #e0e0e0;
+        for number[i] in number_array: Cell {
+            value: number == -1 ? "" : number + "";
+            index: i;
+        }
+    }
+
+    if (win) : Text {
+        y: 500px;
+        height: 50px;
+        text: "success";
     }
 }
