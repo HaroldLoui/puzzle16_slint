@@ -36,23 +36,26 @@ export component MainWindow inherits Window {
     in property <bool> win: false;
     in property <[int]> number_array;
 
-    title: "Main Window";
+    title: "Puzzle16";
     width: 450px;
     height: 550px;
+    icon: @image-url("../icon.png");
 
     Button {
-        y: 0;
-        height: 50px;
-        text: "reset";
+        y: 10px;
+        width: 150px;
+        height: 30px;
+        text: "Reset";
+        primary: true;
         clicked => {
             root.reset();
         }
     }
 
     Rectangle {
+        y: 50px;
         width: parent.width;
         height: 450px;
-        y: 50px;
         background: #e0e0e0;
         for number[i] in number_array: Cell {
             value: number == -1 ? "" : number + "";
@@ -60,9 +63,14 @@ export component MainWindow inherits Window {
         }
     }
 
-    if (win) : Text {
+    if (win) : Rectangle {
         y: 500px;
         height: 50px;
-        text: "success";
+        Text {
+            horizontal-alignment: center;
+            font-size: 24px;
+            text: "success!!!";
+            color: #2baa35;
+        }
     }
 }

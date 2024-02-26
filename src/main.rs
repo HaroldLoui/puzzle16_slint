@@ -5,6 +5,7 @@ use std::{cell::RefCell, rc::Rc};
 slint::include_modules!();
 
 const N: usize = 4;
+const COUNT: usize = 100;
 const DIR: [[i32; 2]; 4] = [[0, -1], [1, 0], [0, 1], [-1, 0]];
 
 struct AppState {
@@ -17,7 +18,7 @@ fn main() -> Result<(), PlatformError> {
     let state: Rc<RefCell<AppState>> = Rc::new(RefCell::new(AppState {
         main_window: main_window.as_weak(),
     }));
-    
+
     main_window.set_number_array(vec_to_model_rc(random_array()));
 
     let state_copy: Rc<RefCell<AppState>> = state.clone();
@@ -28,7 +29,7 @@ fn main() -> Result<(), PlatformError> {
     });
 
     let state_copy: Rc<RefCell<AppState>> = state.clone();
-    main_window.global::<GameLogic>().on_click_cell(move |index, value| {
+    main_window.global::<GameLogic>().on_click_cell(move |index: i32, value| {
         if value.len() == 0 {
             return;
         }
@@ -68,9 +69,9 @@ fn random_array() -> Vec<i32> {
     }
     array.push(-1);
 
-    let mut cur_index = length;
+    let mut cur_index: usize = length;
     let mut rng: ThreadRng = rand::thread_rng();
-    for _count in 0..10 {
+    for _count in 0..COUNT {
         let cur_x: usize = cur_index / N;
         let cur_y: usize = cur_index % N;
 
