@@ -1,6 +1,8 @@
+use cast::{i32, usize};
+use int_cmp::IntCmp;
 use rand::{rngs::ThreadRng, Rng};
-use slint::{Model, ModelRc, PlatformError, VecModel};
-use std::{cell::RefCell, rc::Rc};
+use slint::{Model, ModelRc, PlatformError, SharedString, VecModel};
+use std::{cell::RefCell, rc::Rc, usize};
 
 slint::include_modules!();
 
@@ -23,31 +25,36 @@ fn main() -> Result<(), PlatformError> {
 
     let state_copy: Rc<RefCell<AppState>> = state.clone();
     main_window.on_reset(move || {
-        let app: MainWindow = state_copy.borrow().main_window.unwrap();
+        let app: MainWindow = state_copy
+            .borrow()
+            .main_window
+            .unwrap();
         app.set_number_array(vec_to_model_rc(random_array()));
         app.set_win(false);
     });
 
     let state_copy: Rc<RefCell<AppState>> = state.clone();
-    main_window.global::<GameLogic>().on_click_cell(move |index: i32, value| {
+    main_window.global::<GameLogic>().on_click_cell(move |index: i32, value: SharedString| {
         if value.len() == 0 {
             return;
         }
-        let app: MainWindow = state_copy.borrow().main_window.unwrap();
+        let app: MainWindow = state_copy
+            .borrow()
+            .main_window
+            .unwrap();
         if app.get_win() {
             return;
         }
         let mut new_array: Vec<i32> = app.get_number_array().iter().collect();
 
-        let x: i32 = index / N as i32;
-        let y: i32 = index % N as i32;
+        let usize_index: usize = usize(index).unwrap();
+        let point: (usize, usize) = (usize_index / N, usize_index % N);
         for d in 0..4 {
-            let new_x = x + DIR[d][0];
-            let new_y = y + DIR[d][1];
-            if in_area(new_x, new_y) {
-                let new_index: usize = (new_x * N as i32 + new_y) as usize;
+            let new_point: (i32, i32) = get_new_point(point, (DIR[d][0], DIR[d][1]));
+            if in_area(new_point) {
+                let new_index: usize = point_to_index(new_point);
                 if new_array[new_index] == -1 {
-                    new_array.swap(index as usize, new_index);
+                    new_array.swap(usize(index).unwrap(), new_index);
                     let is_win: bool = check_win(&new_array);
                     if is_win {
                         app.set_win(true);
@@ -65,28 +72,23 @@ fn random_array() -> Vec<i32> {
     let length: usize = N * N - 1;
     let mut array: Vec<i32> = Vec::new();
     for i in 0..length {
-        array.push(i as i32);
+        array.push(i32(i).unwrap());
     }
     array.push(-1);
 
     let mut cur_index: usize = length;
     let mut rng: ThreadRng = rand::thread_rng();
     for _count in 0..COUNT {
-        let cur_x: usize = cur_index / N;
-        let cur_y: usize = cur_index % N;
+        let cur_point: (usize, usize) = (cur_index / N, cur_index % N);
 
         let mut d: usize = rng.gen_range(0..4);
-        let mut new_x: i32 = cur_x as i32 + DIR[d][0];
-        let mut new_y: i32 = cur_y as i32 + DIR[d][1];
-        while !in_area(new_x, new_y) {
+        let mut new_point: (i32, i32) = get_new_point(cur_point, (DIR[d][0], DIR[d][1]));
+        while !in_area(new_point) {
             d = rng.gen_range(0..4);
-            new_x = cur_x as i32 + DIR[d][0];
-            new_y = cur_y as i32 + DIR[d][1];
+            new_point = get_new_point(cur_point, (DIR[d][0], DIR[d][1]));
         }
 
-        let new_x: usize = new_x as usize;
-        let new_y: usize = new_y as usize;
-        let new_index: usize = new_x * N + new_y;
+        let new_index: usize = point_to_index(new_point);
 
         array.swap(cur_index, new_index);
 
@@ -96,24 +98,36 @@ fn random_array() -> Vec<i32> {
     array
 }
 
+fn get_new_point(cur: (usize, usize), d: (i32, i32)) -> (i32, i32) {
+    (i32(cur.0).unwrap() + d.0, i32(cur.1).unwrap() + d.1)
+}
+
+fn point_to_index(point: (i32, i32)) -> usize {
+    let x: usize = usize(point.0).unwrap();
+    let y: usize = usize(point.1).unwrap();
+    x * N + y
+}
+
 fn vec_to_model_rc(array: Vec<i32>) -> ModelRc<i32> {
     Rc::new(VecModel::from(array)).into()
 }
 
 fn check_win(array: &Vec<i32>) -> bool {
-    let mut index = 0;
-    let mut flag = true;
-    for ele in array {
-        if index < 15 && *ele != index {
+    let length: usize = array.len() - 1;
+    let mut flag: bool = true;
+    for (i, ele) in array.iter().enumerate() {
+        if i < 15 && (*ele).cmp_ne(i) {
             flag = false;
             break;
         }
-        index += 1;
+        if i == length {
+            flag = (*ele) == -1;
+        }
     }
     flag
 }
 
-fn in_area(x: i32, y: i32) -> bool {
-    let length: i32 = N as i32;
-    (x >= 0 && x < length) && (y >= 0 && y < length)
+fn in_area(p: (i32, i32)) -> bool {
+    let length: i32 = i32(N).unwrap();
+    (p.0 >= 0 && p.0 < length) && (p.1 >= 0 && p.1 < length)
 }
