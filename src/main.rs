@@ -78,7 +78,7 @@ fn random_array() -> Vec<i32> {
 
     let mut cur_index: usize = length;
     let mut rng: ThreadRng = rand::thread_rng();
-    for _count in 0..COUNT {
+    for _ in 0..COUNT {
         let cur_point: (usize, usize) = (cur_index / N, cur_index % N);
 
         let mut d: usize = rng.gen_range(0..4);
