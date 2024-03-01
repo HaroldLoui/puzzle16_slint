@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use cast::{i32, usize};
 use int_cmp::IntCmp;
 use rand::{rngs::ThreadRng, Rng};
